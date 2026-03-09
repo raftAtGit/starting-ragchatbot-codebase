@@ -103,6 +103,28 @@ header h1 {
     background: var(--text-secondary);
 }
 
+.new-chat-btn {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0;
+    margin-bottom: 1.5rem;
+    background: none;
+    color: var(--text-secondary);
+    border: none;
+    font-size: 0.875rem;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color 0.2s ease;
+}
+
+.new-chat-btn:hover {
+    color: var(--primary-color);
+}
+
 .sidebar-section {
     margin-bottom: 1.5rem;
 }
@@ -241,8 +263,33 @@ header h1 {
 }
 
 .sources-content {
-    padding: 0 0.5rem 0.25rem 1.5rem;
-    color: var(--text-secondary);
+    padding: 0.25rem 0.5rem 0.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.source-link {
+    display: inline-block;
+    color: #60a5fa;
+    text-decoration: none;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    background: rgba(96, 165, 250, 0.07);
+    width: fit-content;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.source-link:hover {
+    background: rgba(96, 165, 250, 0.18);
+    border-color: #60a5fa;
+    color: #93c5fd;
 }
 
 /* Markdown formatting styles */

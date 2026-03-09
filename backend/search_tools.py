@@ -62,55 +62,79 @@ class CourseSearchTool(Tool):
             Formatted search results or error message
         """
         
+        # If searching by course name, prepend the course outline
+        outline_text = ""
+        if course_name:
+            outline = self.store.get_course_outline(course_name)
+            if outline:
+                lessons_list = "\n".join(
+                    f"  Lesson {l['lesson_number']}: {l['lesson_title']}"
+                    for l in outline['lessons']
+                )
+                outline_text = (
+                    f"[Course Outline: {outline['title']}]\n"
+                    f"Instructor: {outline['instructor']}\n"
+                    f"Lessons:\n{lessons_list}\n\n"
+                )
+
         # Use the vector store's unified search interface
         results = self.store.search(
             query=query,
             course_name=course_name,
             lesson_number=lesson_number
         )
-        
+
         # Handle errors
         if results.error:
-            return results.error
-        
-        # Handle empty results
+            return outline_text + results.error if outline_text else results.error
+
+        # If we have an outline, return it even if content search is empty
         if results.is_empty():
+            if outline_text:
+                return outline_text.strip()
             filter_info = ""
             if course_name:
                 filter_info += f" in course '{course_name}'"
             if lesson_number:
                 filter_info += f" in lesson {lesson_number}"
             return f"No relevant content found{filter_info}."
-        
-        # Format and return results
-        return self._format_results(results)
+
+        # Format and return results, with outline prepended if available
+        content = self._format_results(results)
+        return outline_text + content if outline_text else content
     
     def _format_results(self, results: SearchResults) -> str:
         """Format search results with course and lesson context"""
         formatted = []
         sources = []  # Track sources for the UI
-        
+
         for doc, meta in zip(results.documents, results.metadata):
             course_title = meta.get('course_title', 'unknown')
             lesson_num = meta.get('lesson_number')
-            
+
             # Build context header
             header = f"[{course_title}"
             if lesson_num is not None:
                 header += f" - Lesson {lesson_num}"
             header += "]"
-            
-            # Track source for the UI
-            source = course_title
+
+            # Resolve URL: prefer lesson link, fall back to course link
+            url = None
             if lesson_num is not None:
-                source += f" - Lesson {lesson_num}"
-            sources.append(source)
-            
+                url = self.store.get_lesson_link(course_title, lesson_num)
+            if not url:
+                url = self.store.get_course_link(course_title)
+
+            text = course_title
+            if lesson_num is not None:
+                text += f" - Lesson {lesson_num}"
+            sources.append({"text": text, "url": url or "#"})
+
             formatted.append(f"{header}\n{doc}")
-        
+
         # Store sources for retrieval
         self.last_sources = sources
-        
+
         return "\n\n".join(formatted)
 
 class ToolManager:
